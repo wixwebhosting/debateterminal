@@ -1,4 +1,4 @@
-// api/chat.js - Universal API function for both local and Vercel
+// api/chat.js - Direct HTTP requests version
 
 // Load environment variables only if running locally (not on Vercel)
 if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
@@ -7,14 +7,6 @@ if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
     } catch (e) {
         // dotenv not available, skip
     }
-}
-
-let axios;
-try {
-    axios = require('axios');
-} catch (e) {
-    // Fallback if axios not available
-    console.warn('Axios not available, using fetch');
 }
 
 // Rate limiting for API calls
@@ -36,48 +28,6 @@ const rateLimiter = {
     }
 };
 
-// HTTP request function (works with or without axios)
-async function makeRequest(url, options) {
-    if (axios) {
-        try {
-            const response = await axios({
-                method: options.method || 'POST',
-                url: url,
-                data: options.body ? JSON.parse(options.body) : undefined,
-                headers: options.headers
-            });
-            return {
-                ok: true,
-                status: response.status,
-                data: response.data
-            };
-        } catch (error) {
-            return {
-                ok: false,
-                status: error.response?.status || 500,
-                data: error.response?.data || { error: error.message }
-            };
-        }
-    } else {
-        // Fallback to fetch (built into Node 18+)
-        try {
-            const response = await fetch(url, options);
-            const data = await response.json();
-            return {
-                ok: response.ok,
-                status: response.status,
-                data: data
-            };
-        } catch (error) {
-            return {
-                ok: false,
-                status: 500,
-                data: { error: error.message }
-            };
-        }
-    }
-}
-
 // OpenAI API function
 async function askOpenAI(prompt) {
     const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
@@ -87,7 +37,7 @@ async function askOpenAI(prompt) {
     
     await rateLimiter.waitIfNeeded('openai');
     
-    const response = await makeRequest('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${OPENAI_API_KEY}`,
@@ -102,10 +52,12 @@ async function askOpenAI(prompt) {
     });
 
     if (!response.ok) {
-        throw new Error(`OpenAI error: ${response.data?.error?.message || 'Unknown error'}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(`OpenAI error: ${errorData?.error?.message || 'Unknown error'}`);
     }
 
-    return response.data.choices[0].message.content.trim();
+    const data = await response.json();
+    return data.choices[0].message.content.trim();
 }
 
 // Grok API function
@@ -117,7 +69,7 @@ async function askGrok(prompt) {
     
     await rateLimiter.waitIfNeeded('grok');
     
-    const response = await makeRequest('https://api.x.ai/v1/chat/completions', {
+    const response = await fetch('https://api.x.ai/v1/chat/completions', {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${XAI_API_KEY}`,
@@ -132,10 +84,12 @@ async function askGrok(prompt) {
     });
 
     if (!response.ok) {
-        throw new Error(`Grok error: ${response.data?.error?.message || 'Unknown error'}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(`Grok error: ${errorData?.error?.message || 'Unknown error'}`);
     }
 
-    return response.data.choices[0].message.content.trim();
+    const data = await response.json();
+    return data.choices[0].message.content.trim();
 }
 
 // Claude API function
@@ -147,7 +101,7 @@ async function askClaude(prompt) {
     
     await rateLimiter.waitIfNeeded('claude');
     
-    const response = await makeRequest('https://api.anthropic.com/v1/messages', {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
             'x-api-key': CLAUDE_API_KEY,
@@ -163,10 +117,12 @@ async function askClaude(prompt) {
     });
 
     if (!response.ok) {
-        throw new Error(`Claude error: ${response.data?.error?.message || 'Unknown error'}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(`Claude error: ${errorData?.error?.message || 'Unknown error'}`);
     }
 
-    return response.data.content[0].text.trim();
+    const data = await response.json();
+    return data.content[0].text.trim();
 }
 
 // DeepSeek API function
@@ -178,7 +134,7 @@ async function askDeepSeek(prompt) {
     
     await rateLimiter.waitIfNeeded('deepseek');
     
-    const response = await makeRequest('https://api.deepseek.com/v1/chat/completions', {
+    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
@@ -193,10 +149,12 @@ async function askDeepSeek(prompt) {
     });
 
     if (!response.ok) {
-        throw new Error(`DeepSeek error: ${response.data?.error?.message || 'Unknown error'}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(`DeepSeek error: ${errorData?.error?.message || 'Unknown error'}`);
     }
 
-    return response.data.choices[0].message.content.trim();
+    const data = await response.json();
+    return data.choices[0].message.content.trim();
 }
 
 // Function to clean AI responses
