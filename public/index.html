@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PVP</title>
+    <link rel="icon" type="image/x-icon" href="fist.ico">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier Prime', monospace;
+            background-color: #000000;
+            color: #00FF00;
+            height: 100vh;
+            padding: 10px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            text-shadow: 0 0 8px #00FF00;
+            transition: text-shadow 0.3s ease;
+            overflow: hidden;
+            margin: 0;
+        }
+        
+        #particles-js {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        body:hover {
+            text-shadow: 0 0 15px #00FF00;
+        }
+        
+        .container {
+            width: 70%;
+            margin: 0 auto;
+            background-color: transparent;
+            border-radius: 0px;
+            padding: 10px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            height: calc(100vh - 20px);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #00FF00;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 3px #00FF00;
+            font-size: 2.2em;
+            animation: glow-pulse 1s ease-in-out infinite alternate;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        @keyframes glow-pulse {
+            from {
+                text-shadow: 0 0 3px #00FF00;
+            }
+            to {
+                text-shadow: 0 0 8px #00FF00, 0 0 10px #00FF00;
+            }
+        }
+        
+        @keyframes black-wave {
+            0% {
+                transform: translateX(-100%) skewX(-15deg);
+            }
+            100% {
+                transform: translateX(400%) skewX(-15deg);
+            }
+        }
+        
+        .wave-overlay {
+            display: none;
+        }
+        
+        h1:hover {
+            animation-play-state: paused;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                margin-top: 60px;
+                font-size: 2.5em;
+            }
+            .social-links {
+                top: 5px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                margin-top: 80px;
+                font-size: 1.8em;
+            }
+            .social-links {
+                font-size: 0.5em;
+            }
+        }
+        
+        .form-group {
+            margin-bottom: 10px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #00FF00;
+            font-weight: bold;
+            text-shadow: 0 0 8px #00FF00;
+            transition: text-shadow 0.3s ease;
+        }
+        
+        label:hover {
+            text-shadow: 0 0 15px #00FF00;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            background-color: #111111;
+            border: 2px solid #00AA00;
+            border-radius: 8px;
+            color: #00FF00;
+            font-family: 'Courier Prime', monospace;
+            font-size: 14px;
+            text-shadow: 0 0 8px #00FF00;
+            transition: all 0.3s ease;
+        }
+        
+        input[type="text"]:hover {
+            text-shadow: 0 0 15px #00FF00;
+            box-shadow: 0 0 15px #00AA00;
+        }
+        
+        input[type="text"]::placeholder {
+            color: #666666;
+            opacity: 1;
+        }
+        
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #00FF00;
+            box-shadow: 0 0 10px #00AA00;
+        }
+        
+        .console {
+            width: 100%;
+            background-color: #000000;
+            border: 2px solid #00AA00;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 10px 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            font-family: 'Courier Prime', monospace;
+            font-size: 13px;
+            line-height: 1.3;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            flex: 1;
+            min-height: 0;
+            text-shadow: 0 0 8px currentColor;
+            transition: all 0.3s ease;
+            scroll-behavior: smooth;
+        }
+        
+        .console:hover {
+            text-shadow: 0 0 15px currentColor;
+            box-shadow: 0 0 15px #00AA00;
+        }
+        
+        .console::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .console {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        .user1-text {
+            color: #000000;
+            background-color: #00FF00;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        
+        .user2-text {
+            color: #00FF00;
+        }
+        
+        .grok-text {
+            color: #FF6B35 !important;
+            text-shadow: 0 0 8px #FF6B35 !important;
+            transition: text-shadow 0.3s ease;
+        }
+        
+        .grok-text:hover {
+            text-shadow: 0 0 15px #FF6B35 !important;
+        }
+        
+        .claude-text {
+            color: #7C3AED !important;
+            text-shadow: 0 0 8px #7C3AED !important;
+            transition: text-shadow 0.3s ease;
+        }
+        
+        .claude-text:hover {
+            text-shadow: 0 0 15px #7C3AED !important;
+        }
+        
+        .chatgpt-text {
+            color: #10B981 !important;
+            text-shadow: 0 0 8px #10B981 !important;
+            transition: text-shadow 0.3s ease;
+        }
+        
+        .chatgpt-text:hover {
+            text-shadow: 0 0 15px #10B981 !important;
+        }
+        
+        .deepseek-text {
+            color: #FF1493 !important;
+            text-shadow: 0 0 8px #FF1493 !important;
+            transition: text-shadow 0.3s ease;
+        }
+        
+        .deepseek-text:hover {
+            text-shadow: 0 0 15px #FF1493 !important;
+        }
+        
+        .error-text {
+            color: #FF0000;
+        }
+        
+        .loading {
+            color: #FFFF00;
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        
+        .button {
+            background-color: #111111;
+            color: #00FF00;
+            border: 2px solid #00AA00;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-family: 'Courier Prime', monospace;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 3px;
+            text-shadow: 0 0 8px #00FF00;
+        }
+        
+        .button:hover {
+            background-color: #222222;
+            box-shadow: 0 0 15px #00AA00;
+            text-shadow: 0 0 15px #00FF00;
+        }
+        
+        .button:active {
+            background-color: #000000;
+        }
+        
+        .button:disabled {
+            background-color: #000000;
+            color: #006600;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        
+        .button-container {
+            text-align: center;
+            margin-top: 10px;
+        }
+        
+        .status {
+            text-align: center;
+            margin: 10px 0;
+            font-weight: bold;
+            text-shadow: 0 0 8px #00FF00;
+            transition: text-shadow 0.3s ease;
+        }
+        
+        .status:hover {
+            text-shadow: 0 0 15px #00FF00;
+        }
+        
+        .terminal-header {
+            text-align: center;
+            color: #00FF00;
+            font-size: 0.8em;
+            margin: 0 auto 8px auto;
+            text-shadow: 0 0 8px #00FF00;
+            letter-spacing: 1px;
+            border: 1px solid #00AA00;
+            border-radius: 8px;
+            padding: 8px;
+            background-color: #111111;
+            transition: all 0.3s ease;
+            width: 40%;
+        }
+        
+        .terminal-header:hover {
+            text-shadow: 0 0 15px #00FF00;
+            box-shadow: 0 0 15px #00AA00;
+        }
+        
+        .contract-address {
+            text-align: center;
+            color: #00FF00;
+            font-size: 0.8em;
+            margin: 0 auto 15px auto;
+            text-shadow: 0 0 8px #00FF00;
+            letter-spacing: 1px;
+            border: 1px solid #00AA00;
+            border-radius: 8px;
+            padding: 8px;
+            background-color: #111111;
+            transition: all 0.3s ease;
+            width: 40%;
+        }
+        
+        .contract-address:hover {
+            text-shadow: 0 0 15px #00FF00;
+            box-shadow: 0 0 15px #00AA00;
+        }
+        
+        .social-links {
+            position: absolute;
+            top: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.6em;
+            color: #00AA00;
+            text-shadow: 0 0 8px #00AA00;
+            transition: text-shadow 0.3s ease;
+            z-index: 1;
+            overflow: hidden;
+            text-align: center;
+        }
+        
+        .social-links a {
+            color: #00FF00;
+            text-decoration: none;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+            text-shadow: 0 0 8px #00FF00;
+            display: inline-block;
+        }
+        
+        .social-links a:hover {
+            text-shadow: 0 0 15px #00FF00;
+            color: #FFFFFF;
+        }
+        
+        .social-wave-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(0,0,0,0.2) 5%, 
+                rgba(0,0,0,0.8) 30%, 
+                rgba(0,0,0,1) 50%, 
+                rgba(0,0,0,0.8) 70%, 
+                rgba(0,0,0,0.2) 95%, 
+                transparent 100%);
+            animation: black-wave 2s ease-in-out infinite;
+            animation-delay: 0s;
+            z-index: 10;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="particles-js"></div>
+    
+    <div class="social-links">
+        <div class="social-wave-overlay"></div>
+        <div style="position: relative; z-index: 5;">
+            <a href="https://twitter.com/kkaimatsu" target="_blank">@kkaimatsu</a>
+            <a href="https://twitter.com/lardsolana" target="_blank">@lardsolana</a>
+        </div>
+    </div>
+    
+    <div class="container">
+        <h1 class="glow">
+            <div class="wave-overlay"></div>
+            <pre style="font-family: 'Courier Prime', monospace; font-size: 0.2em; line-height: 1; margin: 0;">
+                                                                                  
+                        ██████████            █████                █████                               
+                        ░░███░░░░███          ░░███                ░░███                                
+                        ░███   ░░███  ██████  ░███████   ██████   ███████    ██████                    
+                        ░███    ░███ ███░░███ ░███░░███ ░░░░░███ ░░░███░    ███░░███                   
+                        ░███    ░███░███████  ░███ ░███  ███████   ░███    ░███████                    
+                        ░███    ███ ░███░░░   ░███ ░███ ███░░███   ░███ ███░███░░░                     
+                        ██████████  ░░██████  ████████ ░░████████  ░░█████ ░░██████                    
+                        ░░░░░░░░░░    ░░░░░░  ░░░░░░░░   ░░░░░░░░    ░░░░░   ░░░░░░                     
+                                                                                
+                                                                                
+                                                                                 
+  ███████████                                  ███                      ████ 
+     ███░░░                                     ░░░                     ███ 
+    ░███      ██████  ████████  █████████████   ████   ████████   ██████   ░███ 
+    ░███     ███░░███░░███░░███░░███░░███░░███ ░░███ ░░███░░███  ░░░░░███  ░███ 
+    ░███    ░███████  ░███ ░░░  ░███ ░███ ░███  ░███  ░███ ░███   ███████  ░███ 
+    ░███    ░███░░░   ░███      ░███ ░███ ░███  ░███  ░███ ░███  ███░░███  ░███ 
+    █████   ░░██████  █████     █████░███ █████ █████ ████ █████░░████████ █████
+   ░░░░░     ░░░░░░  ░░░░░     ░░░░░ ░░░ ░░░░░ ░░░░░ ░░░░ ░░░░░  ░░░░░░░░ ░░░░░ 
+                                                                                  
+                                                                                  
+            </pre>
+        </h1>
+        <div class="terminal-header">Grok vs Claude vs ChatGPT vs DeepSeek Debate</div>
+        <div class="contract-address">Contract Address: Soon</div>
+        
+        <div class="form-group">
+            <label for="initialPrompt">Prompt</label>
+            <input type="text" id="initialPrompt" placeholder="Enter a debate question....">
+        </div>
+
+        <div class="console" id="console"></div>
+        
+        <div class="status" id="status" style="display: none;">Ready to start conversation</div>
+        
+        <div class="button-container">
+            <button class="button" id="startBtn">Start Conversation</button>
+            <button class="button" id="stopBtn" disabled>Stop Conversation</button>
+        </div>
+    </div>
+
+    <!-- Load particles.js with fallback -->
+    <script>
+        // Try to load local particles.min.js first, then CDN fallback
+        function loadParticles() {
+            const script1 = document.createElement('script');
+            script1.src = 'particles.min.js';
+            script1.onload = initParticles;
+            script1.onerror = function() {
+                console.log('Local particles.min.js failed, trying CDN...');
+                const script2 = document.createElement('script');
+                script2.src = 'https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js';
+                script2.onload = initParticles;
+                script2.onerror = function() {
+                    console.log('CDN particles.js also failed');
+                };
+                document.head.appendChild(script2);
+            };
+            document.head.appendChild(script1);
+        }
+        
+        // Initialize particles
+        function initParticles() {
+            if (typeof particlesJS !== 'undefined') {
+                console.log('Initializing particles...');
+                particlesJS('particles-js', {
+                    "particles": {
+                        "number": { "value": 80, "density": { "enable": true, "value_area": 800 } },
+                        "color": { "value": "#00FF00" },
+                        "shape": {
+                            "type": "circle",
+                            "stroke": { "width": 0, "color": "#000000" }
+                        },
+                        "opacity": { "value": 0.5 },
+                        "size": { "value": 3, "random": true },
+                        "line_linked": {
+                            "enable": true,
+                            "distance": 150,
+                            "color": "#00AA00",
+                            "opacity": 0.4,
+                            "width": 1
+                        },
+                        "move": {
+                            "enable": true,
+                            "speed": 2,
+                            "direction": "none",
+                            "random": false,
+                            "straight": false,
+                            "out_mode": "out",
+                            "bounce": false
+                        }
+                    },
+                    "interactivity": {
+                        "detect_on": "window",
+                        "events": {
+                            "onhover": { "enable": true, "mode": "grab" },
+                            "onclick": { "enable": true, "mode": "push" },
+                            "resize": true
+                        },
+                        "modes": {
+                            "grab": { "distance": 200, "line_linked": { "opacity": 1 } },
+                            "bubble": { "distance": 400, "size": 40, "duration": 2, "opacity": 8, "speed": 3 },
+                            "repulse": { "distance": 200, "duration": 0.4 },
+                            "push": { "particles_nb": 4 },
+                            "remove": { "particles_nb": 2 }
+                        }
+                    },
+                    "retina_detect": true
+                });
+                console.log('Particles initialized successfully!');
+            } else {
+                console.log('particlesJS not available');
+            }
+        }
+        
+        // Load particles when page loads
+        loadParticles();
+    </script>
+    
+<script>
+    const console_elem = document.getElementById('console');
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const status = document.getElementById('status');
+
+    let isRunning = false;
+    let currentTimeout = null;
+    let dialogue = [];
+    let typingSound = null;
+
+    // Load typing sound
+    function loadTypingSound() {
+        try {
+            typingSound = new Audio('type.mp3');
+            typingSound.volume = 0.3;
+            typingSound.loop = true;
+        } catch (error) {
+            console.log('Could not load typing sound:', error);
+        }
+    }
+
+    loadTypingSound();
+
+    // Add message to console with typewriter effect
+    function addMessage(text, className) {
+        const span = document.createElement('span');
+        span.className = className;
+        console_elem.appendChild(span);
+
+        let i = 0;
+
+        // Start looping typing sound
+        if (typingSound) {
+            try {
+                typingSound.currentTime = 0;
+                typingSound.play().catch(() => {});
+            } catch (e) {
+                console.warn('Typing sound play error:', e);
+            }
+        }
+
+        function typeChar() {
+            if (i < text.length) {
+                span.textContent += text[i];
+                i++;
+                setTimeout(typeChar, 20);
+            } else {
+                // Stop sound when done
+                if (typingSound) {
+                    typingSound.pause();
+                    typingSound.currentTime = 0;
+                }
+
+                span.textContent += '\n\n';
+                console_elem.scrollTop = console_elem.scrollHeight;
+            }
+        }
+
+        typeChar();
+    }
+
+    // Show status
+    function showStatus(message) {
+        status.textContent = message;
+        status.style.display = 'block';
+    }
+
+    // Get AI response - Updated to work with new server API
+    async function getAIResponse(aiModel, prompt, history) {
+        try {
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    prompt,
+                    aiModel,
+                    history
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('API Error:', error);
+            throw error;
+        }
+    }
+
+    // Run conversation
+    async function runConversation() {
+        const initialPrompt = document.getElementById('initialPrompt').value;
+        if (!initialPrompt) {
+            alert('Please enter a prompt');
+            return;
+        }
+
+        isRunning = true;
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+        dialogue = [];
+        console_elem.innerHTML = '';
+
+        // Add initial prompt
+        const initialMessage = `GROK: ${initialPrompt}`;
+        dialogue.push(initialMessage);
+        addMessage(initialMessage, 'grok-text');
+
+        showStatus('Conversation running...');
+
+        const ais = ['CLAUDE', 'CHATGPT', 'DEEPSEEK', 'GROK'];
+        const turns = 20;
+
+        for (let i = 0; i < turns && isRunning; i++) {
+            const currentAI = ais[i % 4];
+
+            try {
+                showStatus(`Waiting for ${currentAI}...`);
+
+                // Wait 3 seconds between responses
+                await new Promise(resolve => {
+                    currentTimeout = setTimeout(resolve, 3000);
+                });
+
+                if (!isRunning) break;
+
+                const result = await getAIResponse(currentAI, initialPrompt, dialogue);
+
+                if (result.success) {
+                    const message = `${currentAI}: ${result.response}`;
+                    dialogue.push(message);
+                    addMessage(message, `${currentAI.toLowerCase()}-text`);
+                } else {
+                    addMessage(`${currentAI}: ERROR - ${result.error}`, 'error-text');
+                }
+
+            } catch (error) {
+                addMessage(`${currentAI}: FAILED - ${error.message}`, 'error-text');
+            }
+        }
+
+        stopConversation();
+    }
+
+    // Stop conversation
+    function stopConversation() {
+        isRunning = false;
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+
+        if (currentTimeout) {
+            clearTimeout(currentTimeout);
+            currentTimeout = null;
+        }
+
+        // Stop sound just in case
+        if (typingSound) {
+            typingSound.pause();
+            typingSound.currentTime = 0;
+        }
+
+        showStatus('Conversation stopped');
+    }
+
+    // Event listeners
+    startBtn.addEventListener('click', runConversation);
+    stopBtn.addEventListener('click', stopConversation);
+</script>
+
+</body>
+</html>
