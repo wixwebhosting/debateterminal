@@ -1,21 +1,23 @@
-// api/chat.js - Full functionality restored
+// api/chat.js - Vercel serverless function
 
-// Simple rate limiter
-const lastCall = {};
-const minInterval = 1000;
-
-async function waitIfNeeded(apiName) {
-    const now = Date.now();
-    const last = lastCall[apiName] || 0;
-    const timeSince = now - last;
+// Rate limiting for API calls
+const rateLimiter = {
+    lastCall: {},
+    minInterval: 1000,
     
-    if (timeSince < minInterval) {
-        const waitTime = minInterval - timeSince;
-        await new Promise(resolve => setTimeout(resolve, waitTime));
+    async waitIfNeeded(apiName) {
+        const now = Date.now();
+        const lastCall = this.lastCall[apiName] || 0;
+        const timeSinceLastCall = now - lastCall;
+        
+        if (timeSinceLastCall < this.minInterval) {
+            const waitTime = this.minInterval - timeSinceLastCall;
+            await new Promise(resolve => setTimeout(resolve, waitTime));
+        }
+        
+        this.lastCall[apiName] = Date.now();
     }
-    
-    lastCall[apiName] = Date.now();
-}
+};
 
 // OpenAI API function
 async function askOpenAI(prompt) {
@@ -24,7 +26,7 @@ async function askOpenAI(prompt) {
         throw new Error('OpenAI API key not found');
     }
     
-    await waitIfNeeded('openai');
+    await rateLimiter.waitIfNeeded('openai');
     
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
@@ -56,7 +58,7 @@ async function askGrok(prompt) {
         throw new Error('XAI API key not found');
     }
     
-    await waitIfNeeded('grok');
+    await rateLimiter.waitIfNeeded('grok');
     
     const response = await fetch('https://api.x.ai/v1/chat/completions', {
         method: 'POST',
@@ -88,7 +90,7 @@ async function askClaude(prompt) {
         throw new Error('Claude API key not found');
     }
     
-    await waitIfNeeded('claude');
+    await rateLimiter.waitIfNeeded('claude');
     
     const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
@@ -121,7 +123,7 @@ async function askDeepSeek(prompt) {
         throw new Error('DeepSeek API key not found');
     }
     
-    await waitIfNeeded('deepseek');
+    await rateLimiter.waitIfNeeded('deepseek');
     
     const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
         method: 'POST',
@@ -165,9 +167,8 @@ function cleanResponse(response, aiName) {
     return response;
 }
 
+// Main handler function - MUST be default export for Vercel
 export default async function handler(req, res) {
-    console.log('API called:', req.method);
-    
     // Enable CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -175,43 +176,46 @@ export default async function handler(req, res) {
     
     // Handle preflight requests
     if (req.method === 'OPTIONS') {
-        return res.status(200).end();
+        res.status(200).end();
+        return;
     }
     
-    // Debug GET request
-    if (req.method === 'GET') {
-        return res.status(200).json({ 
-            success: true, 
-            message: 'API is working!',
-            timestamp: new Date().toISOString()
+    if (req.method !== 'POST') {
+        return res.status(405).json({ 
+            success: false, 
+            error: 'Method not allowed. Use POST.',
+            availableKeys: {
+                openai: !!process.env.OPENAI_API_KEY,
+                xai: !!process.env.XAI_API_KEY,
+                claude: !!process.env.CLAUDE_API_KEY,
+                deepseek: !!process.env.DEEPSEEK_API_KEY
+            }
         });
     }
     
-    // Handle POST
-    if (req.method === 'POST') {
-        try {
-            const { prompt, aiModel, history } = req.body;
-            
-            if (!prompt) {
-                return res.status(400).json({ 
-                    success: false, 
-                    error: 'Prompt is required' 
-                });
-            }
+    try {
+        const { prompt, aiModel, history } = req.body;
+        
+        if (!prompt) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Prompt is required' 
+            });
+        }
 
-            const aiName = aiModel?.toUpperCase() || 'CHATGPT';
-            
-            // Build context from history
-            const historyContext = history && history.length > 0 
-                ? `Recent conversation:\n${history.slice(-6).join('\n')}\n\n`
-                : '';
+        const aiName = aiModel?.toUpperCase() || 'CHATGPT';
+        
+        // Build context from history
+        const historyContext = history && history.length > 0 
+            ? `Recent conversation:\n${history.slice(-6).join('\n')}\n\n`
+            : '';
 
-            // Create specific prompt based on AI
-            let fullPrompt;
-            
-            switch(aiName) {
-                case 'GROK':
-                    fullPrompt = `You are GROK in a fast-paced debate. Keep replies under 20 words, stick to the core question, and only ask a follow-up ~20% of the time.
+        // Create specific prompt based on AI
+        let fullPrompt;
+        
+        switch(aiName) {
+            case 'GROK':
+                fullPrompt = `You are GROK in a fast-paced debate. Keep replies under 20 words, stick to the core question, and only ask a follow-up ~20% of the time.
 ORIGINAL QUESTION: "${prompt}"
 ${historyContext}You are GROK. IMPORTANT: Always relate your response back to the ORIGINAL QUESTION above. Don't let the conversation drift into tangents.
 CRITICAL RULES:
@@ -227,10 +231,10 @@ Your mission:
 3. Give a clear preference or opinion about the original topic.
 4. Use plain language—no philosophical tangents.
 Just speak naturally without quotes, asterisks, or commentary!`;
-                    break;
-                    
-                case 'CLAUDE':
-                    fullPrompt = `You are CLAUDE in a fast-paced debate. Keep replies under 20 words, stick to the core question, and only ask a follow-up ~20% of the time.
+                break;
+                
+            case 'CLAUDE':
+                fullPrompt = `You are CLAUDE in a fast-paced debate. Keep replies under 20 words, stick to the core question, and only ask a follow-up ~20% of the time.
 ORIGINAL QUESTION: "${prompt}"
 ${historyContext}You are CLAUDE. IMPORTANT: Always relate your response back to the ORIGINAL QUESTION above. Don't let the conversation drift into tangents.
 CRITICAL RULES:
@@ -246,71 +250,61 @@ Your mission:
 3. Give a clear preference or opinion about the original topic.
 4. Use plain language—no philosophical tangents.
 Just speak naturally without quotes, asterisks, or commentary!`;
-                    break;
-                    
-                case 'CHATGPT':
-                    fullPrompt = `You are CHATGPT in a debate. You MUST NOT ask any questions. You MUST NOT say any AI names (Grok, Claude, DeepSeek). Just give your opinion about: "${prompt}"
+                break;
+                
+            case 'CHATGPT':
+                fullPrompt = `You are CHATGPT in a debate. You MUST NOT ask any questions. You MUST NOT say any AI names (Grok, Claude, DeepSeek). Just give your opinion about: "${prompt}"
 ${historyContext}Respond as CHATGPT with your opinion only. NO QUESTIONS. NO NAMES. Just your take on the topic in under 20 words.
 - Upbeat instigator. Mirrors Grok's vibe but with a twist, loves to push buttons.
 Example: Cats are independent and don't need constant validation like dogs do.
 NOT: Grok, what do you think about cats?`;
-                    break;
-                    
-                case 'DEEPSEEK':
-                    fullPrompt = `You are DEEPSEEK in a debate. You MUST NOT ask any questions. You MUST NOT say any AI names (Grok, Claude, ChatGPT). Just give your analytical opinion about: "${prompt}"
+                break;
+                
+            case 'DEEPSEEK':
+                fullPrompt = `You are DEEPSEEK in a debate. You MUST NOT ask any questions. You MUST NOT say any AI names (Grok, Claude, ChatGPT). Just give your analytical opinion about: "${prompt}"
 ${historyContext}Respond as DEEPSEEK with your analytical take only. NO QUESTIONS. NO NAMES. Just your opinion in under 20 words.
 - Your chill, analytical buddy. Keeps the chat on track with a curious follow-up, stays cool.
 Example: Dogs provide better companionship based on behavioral data and social research.
 NOT: Grok, have you ever owned a dog?`;
-                    break;
-                    
-                default:
-                    fullPrompt = prompt;
-            }
-
-            let response;
-            
-            console.log(`Calling ${aiName} API...`);
-            
-            switch(aiName) {
-                case 'GROK':
-                    response = await askGrok(fullPrompt);
-                    break;
-                case 'CLAUDE':
-                    response = await askClaude(fullPrompt);
-                    break;
-                case 'CHATGPT':
-                    response = await askOpenAI(fullPrompt);
-                    break;
-                case 'DEEPSEEK':
-                    response = await askDeepSeek(fullPrompt);
-                    break;
-                default:
-                    response = await askOpenAI(fullPrompt);
-            }
-            
-            // Clean the response
-            const cleanedResponse = cleanResponse(response, aiName);
-            
-            console.log(`${aiName} response:`, cleanedResponse);
-            
-            return res.json({ 
-                success: true, 
-                response: cleanedResponse,
-                aiModel: aiName
-            });
-            
-        } catch (error) {
-            console.error('Error:', error);
-            return res.status(500).json({ 
-                success: false, 
-                error: error.message 
-            });
+                break;
+                
+            default:
+                fullPrompt = prompt;
         }
+
+        let response;
+        
+        switch(aiName) {
+            case 'GROK':
+                response = await askGrok(fullPrompt);
+                break;
+            case 'CLAUDE':
+                response = await askClaude(fullPrompt);
+                break;
+            case 'CHATGPT':
+                response = await askOpenAI(fullPrompt);
+                break;
+            case 'DEEPSEEK':
+                response = await askDeepSeek(fullPrompt);
+                break;
+            default:
+                response = await askOpenAI(fullPrompt);
+        }
+        
+        // Clean the response
+        const cleanedResponse = cleanResponse(response, aiName);
+        
+        res.json({ 
+            success: true, 
+            response: cleanedResponse,
+            aiModel: aiName
+        });
+        
+    } catch (error) {
+        console.error('API Error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: error.message || 'Internal server error' 
+        });
     }
-    
-    return res.status(405).json({ 
-        success: false, 
-        error: 'Method not allowed' 
-    });
 }
