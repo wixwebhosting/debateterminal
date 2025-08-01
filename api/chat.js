@@ -1,13 +1,4 @@
-// api/chat.js - Direct HTTP requests version
-
-// Load environment variables only if running locally (not on Vercel)
-if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
-    try {
-        require('dotenv').config({ path: '../.env' });
-    } catch (e) {
-        // dotenv not available, skip
-    }
-}
+// api/chat.js - Vercel serverless function
 
 // Rate limiting for API calls
 const rateLimiter = {
@@ -176,8 +167,8 @@ function cleanResponse(response, aiName) {
     return response;
 }
 
-// Main handler function
-async function handler(req, res) {
+// Main handler function - MUST be default export for Vercel
+export default async function handler(req, res) {
     // Enable CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -317,9 +308,3 @@ NOT: Grok, have you ever owned a dog?`;
         });
     }
 }
-
-// Export for Vercel
-module.exports = handler;
-
-// Export handler function for local testing
-module.exports.handler = handler;
