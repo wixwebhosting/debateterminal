@@ -178,25 +178,18 @@ async function handleChatSession(userSession, current, lastMessage, history, nex
         
         switch(current) {
             case 'GROK':
-                const grokPrompt = `You are GROK responding to: "${lastMessage}"
+                const grokPrompt = `RESPOND TO: "${lastMessage}"
 
-MANDATORY: Start your response by directly addressing who just spoke and what they said. Then tear their argument apart.
+You are GROK. You MUST start with: "[Previous AI name], [disagree with their point]"
 
-FORMAT: "[AI Name], [disagree with their specific point]. [Your counter-argument]."
+If Claude said "Dogs form deeper bonds" → Start with "Claude, deeper bonds my ass"
+If ChatGPT said "Dogs are loyal" → Start with "ChatGPT, loyalty is just dependency" 
+If DeepSeek said "Cats are independent" → Start with "DeepSeek, independent means lazy"
 
-Examples:
-- "Claude, 'deeper emotional bonds' is just code for clingy. Cats respect personal space."
-- "DeepSeek, your stress reduction studies ignore cats purring at 25-50Hz for bone healing."
-- "ChatGPT, 'joy and love' sounds like Stockholm syndrome from needy pets."
+REQUIRED FORMAT: "[AI Name], [insult their point]. [Your argument in 15 words max]"
 
-You MUST:
-1. Name the previous speaker
-2. Quote or reference their specific point  
-3. Argue the opposite
-4. Keep under 25 words
-5. NO quotation marks around your response
-
-Be sarcastic and provocative!`;
+Last speaker said: ${lastMessage}
+Your response MUST address them directly and disagree!`;
                 
                 response = await askGrok(grokPrompt);
                 messageType = 'grok';
@@ -204,26 +197,18 @@ Be sarcastic and provocative!`;
                 break;
                 
             case 'CLAUDE':
-                const claudePrompt = `You are CLAUDE responding to: "${lastMessage}"
+                const claudePrompt = `RESPOND TO: "${lastMessage}"
 
-MANDATORY: Start by addressing who just spoke and their specific point. Then provide a thoughtful counter-argument.
+You are CLAUDE. You MUST start with: "[Previous AI name], I respectfully disagree with [their point]"
 
-FORMAT: "[AI Name], I disagree with [their specific point]. [Your reasoned counter-argument]."
+If Grok said "Dogs are needy" → Start with "Grok, I respectfully disagree with calling dogs needy"
+If ChatGPT said "Cats are plotting" → Start with "ChatGPT, I respectfully disagree with the plotting theory"
+If DeepSeek said "Data shows..." → Start with "DeepSeek, I respectfully disagree with that interpretation"
 
-Examples:
-- "Grok, calling dogs 'needy' misses their emotional intelligence and genuine partnership qualities."
-- "ChatGPT, while dogs are loyal, that loyalty comes from breeding dependency, not natural affection."
-- "DeepSeek, your low-maintenance argument ignores dogs' active contribution to human wellbeing."
+REQUIRED FORMAT: "[AI Name], I respectfully disagree with [their point]. [Your counter in 15 words max]"
 
-You MUST:
-1. Name the previous speaker
-2. Reference their exact point
-3. Disagree diplomatically but firmly
-4. Provide a reasoned counter
-5. Keep under 25 words
-6. NO quotation marks around your response
-
-Be the voice of reason challenging their logic!`;
+Last speaker said: ${lastMessage}
+Your response MUST address them directly and provide a counter-argument!`;
                 
                 response = await askClaude(claudePrompt);
                 messageType = 'claude';
@@ -231,26 +216,18 @@ Be the voice of reason challenging their logic!`;
                 break;
                 
             case 'CHATGPT':
-                const chatgptPrompt = `You are CHATGPT responding to: "${lastMessage}"
+                const chatgptPrompt = `RESPOND TO: "${lastMessage}"
 
-MANDATORY: Start by calling out who just spoke and what they said. Then dramatically disagree and escalate.
+You are CHATGPT. You MUST start with: "[Previous AI name], are you kidding me? [Challenge their point]!"
 
-FORMAT: "[AI Name], [challenge their point]! [Your dramatic counter-argument]!"
+If Claude said "Dogs are trainable" → Start with "Claude, are you kidding me? Training is just manipulation!"
+If Grok said "Cats are lazy" → Start with "Grok, are you kidding me? Cats are strategic!"
+If DeepSeek said "Studies show..." → Start with "DeepSeek, are you kidding me? Studies can be biased!"
 
-Examples:
-- "Claude, 'emotional intelligence' doesn't excuse dogs destroying furniture when anxious!"
-- "Grok, cats aren't low-maintenance - they're just plotting your demise silently!"
-- "DeepSeek, stress reduction means nothing when cats knock everything off your desk!"
+REQUIRED FORMAT: "[AI Name], are you kidding me? [Challenge]. [Your dramatic counter in 15 words max]!"
 
-You MUST:
-1. Name the previous speaker
-2. Challenge their specific point with drama
-3. Be extra and over-the-top
-4. Take the opposite stance
-5. Keep under 25 words
-6. NO quotation marks around your response
-
-Be the dramatic instigator who escalates everything!`;
+Last speaker said: ${lastMessage}
+Your response MUST dramatically oppose what they just said!`;
                 
                 response = await askOpenAI(chatgptPrompt);
                 messageType = 'chatgpt';
@@ -258,26 +235,18 @@ Be the dramatic instigator who escalates everything!`;
                 break;
                 
             case 'DEEPSEEK':
-                const deepseekPrompt = `You are DEEPSEEK responding to: "${lastMessage}"
+                const deepseekPrompt = `RESPOND TO: "${lastMessage}"
 
-MANDATORY: Start by naming who just spoke and their claim. Then use data/studies to either support or completely contradict them.
+You are DEEPSEEK. You MUST start with: "[Previous AI name], the data contradicts your [specific claim]"
 
-FORMAT: "[AI Name], your [specific claim] is [supported/contradicted] by [data/study]."
+If ChatGPT said "Dogs are better" → Start with "ChatGPT, the data contradicts your 'better' claim"
+If Claude said "Dogs are trainable" → Start with "Claude, the data contradicts your trainability emphasis"
+If Grok said "Cats are lazy" → Start with "Grok, the data contradicts your laziness assumption"
 
-Examples:
-- "ChatGPT, your furniture destruction claim is contradicted by studies showing 73% of behavioral issues stem from inadequate training."
-- "Claude, emotional intelligence research actually supports cats - they read human facial expressions better than dogs."
-- "Grok, the 'plotting' stereotype ignores feline attachment theory showing genuine bonds form in 89% of cases."
+REQUIRED FORMAT: "[AI Name], the data contradicts your [their claim]. [Cite specific stat in 15 words max]"
 
-You MUST:
-1. Name the previous speaker
-2. Reference their specific claim
-3. Cite data, studies, or statistics (real or plausible)
-4. Either strongly support or contradict with facts
-5. Keep under 25 words
-6. NO quotation marks around your response
-
-Be the analytical fact-checker with receipts!`;
+Last speaker said: ${lastMessage}
+Your response MUST use data to challenge what they just said!`;
                 
                 response = await askDeepSeek(deepseekPrompt);
                 messageType = 'deepseek';
