@@ -1,8 +1,16 @@
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
-const { getAIResponse, AI_MODELS, handleUserMessageResponse, runDebateLoop } = require('./api/chat');
 require('dotenv').config();
+
+// Try to import chat functionality, but handle errors gracefully
+let chatModule = null;
+try {
+  chatModule = require('./api/chat');
+} catch (error) {
+  console.warn('Warning: Chat module failed to load:', error.message);
+  console.warn('Debate functionality will be limited without API keys');
+}
 
 const app = express();
 
@@ -58,31 +66,49 @@ app.get('/api/questions/:category', (req, res) => {
   }
 });
 
-app.post('/api/debate/start', (req, res) => {
-  const { prompt } = req.body;
-  
-  if (!prompt || prompt.trim().length === 0) {
-    return res.status(400).json({ success: false, error: 'Prompt is required' });
-  }
-
-  const sessionId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
-  
-  const session = {
-    id: sessionId,
-    prompt: prompt.trim(),
-    messages: [],
-    currentTurn: 0,
-    isActive: false,
-    createdAt: new Date()
-  };
-
-  debateSessions.set(sessionId, session);
-
-  res.json({
-    success: true,
-    sessionId,
-    message: 'Debate session created successfully'
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    success: true, 
+    message: 'API is healthy',
+    timestamp: new Date().toISOString(),
+    sessions: debateSessions.size
   });
+});
+
+app.post('/api/debate/start', (req, res) => {
+  try {
+    const { prompt } = req.body;
+    
+    if (!prompt || prompt.trim().length === 0) {
+      return res.status(400).json({ success: false, error: 'Prompt is required' });
+    }
+
+    const sessionId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+    
+    const session = {
+      id: sessionId,
+      prompt: prompt.trim(),
+      messages: [],
+      currentTurn: 0,
+      isActive: false,
+      createdAt: new Date()
+    };
+
+    debateSessions.set(sessionId, session);
+
+    res.json({
+      success: true,
+      sessionId,
+      message: 'Debate session created successfully'
+    });
+  } catch (error) {
+    console.error('Error in /api/debate/start:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Internal server error: ' + error.message 
+    });
+  }
 });
 
 app.post('/api/debate/stop/:sessionId', (req, res) => {
@@ -138,7 +164,15 @@ app.post('/api/debate/:sessionId/start', async (req, res) => {
   console.log(`Starting debate for session: ${sessionId}`);
   
   // Start the debate loop in background using chat.js function
-  runDebateLoop(sessionId, debateSessions);
+  if (chatModule && chatModule.runDebateLoop) {
+    chatModule.runDebateLoop(sessionId, debateSessions);
+  } else {
+    console.warn('Chat module not available - debate loop cannot start');
+    return res.status(500).json({ 
+      success: false, 
+      error: 'Chat functionality not available - missing API keys' 
+    });
+  }
   
   res.json({ success: true, message: 'Debate started' });
 });
@@ -171,9 +205,13 @@ app.post('/api/debate/:sessionId/message', async (req, res) => {
     console.log(`🤖 [TRIGGERING AI RESPONSE] to user message`);
     
     // Use the chat.js function to handle the AI response
-    setTimeout(async () => {
-      await handleUserMessageResponse(session, debateSessions);
-    }, 2000);
+    if (chatModule && chatModule.handleUserMessageResponse) {
+      setTimeout(async () => {
+        await chatModule.handleUserMessageResponse(session, debateSessions);
+      }, 2000);
+    } else {
+      console.warn('Chat module not available - cannot respond to user message');
+    }
   }
   
   res.json({ success: true, message: 'Message added' });
