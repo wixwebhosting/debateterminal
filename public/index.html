@@ -830,7 +830,7 @@
 
             async loadRandomQuestion(category) {
                 try {
-                    const response = await fetch(`/api/questions/${category}`);
+                    const response = await fetch(`/api/questions?category=${category}`);
                     const data = await response.json();
                     
                     if (data.success) {
@@ -853,7 +853,7 @@
                     this.processedMessageIds.clear();
                     
                     // Create debate session
-                    const response = await fetch('/api/debate/start', {
+                    const response = await fetch('/api/start', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
