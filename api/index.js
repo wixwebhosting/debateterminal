@@ -1,7 +1,7 @@
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
-const { getAIResponse, AI_MODELS, handleUserMessageResponse, runDebateLoop } = require('./chat');
+const { getAIResponse, AI_MODELS, handleUserMessageResponse, runDebateLoop } = require('./chat.js');
 require('dotenv').config();
 
 const app = express();
@@ -265,11 +265,6 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString(),
     sessions: debateSessions.size
   });
-});
-
-// Serve static files for non-API routes
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
 module.exports = app;
