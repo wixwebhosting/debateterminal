@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debate Terminal - AI Models Debate in Real-time</title>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            color: #e0e6ed;
+            min-height: 100vh;
+            line-height: 1.6;
+            position: relative;
+        }
+
+        /* Particles background */
+        #particles-js {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 60px 0;
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            font-weight: 300;
+            margin-bottom: 16px;
+            letter-spacing: -0.02em;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: #9ca3af;
+        }
+
+        /* Search Section */
+        .search-section {
+            margin-bottom: 40px;
+        }
+
+        .search-container {
+            position: relative;
+            margin-bottom: 32px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 24px 60px 24px 60px;
+            font-size: 1.1rem;
+            background: rgba(30, 41, 59, 0.5);
+            border: 2px solid rgba(71, 85, 105, 0.3);
+            border-radius: 20px;
+            color: #e0e6ed;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .search-input::placeholder {
+            color: #64748b;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+            width: 20px;
+            height: 20px;
+        }
+
+        .prompt-arrow {
+            position: absolute;
+            left: 25px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 24px;
+            height: 24px;
+            color: #3b82f6;
+            opacity: 1;
+            transition: all 0.3s ease;
+            animation: aggressive-glow-pulse 1.5s infinite ease-in-out;
+            z-index: 10;
+        }
+
+        @keyframes aggressive-glow-pulse {
+            0%, 100% {
+                filter: drop-shadow(0 0 20px rgba(59, 130, 246, 1)) 
+                        drop-shadow(0 0 35px rgba(59, 130, 246, 0.9))
+                        drop-shadow(0 0 50px rgba(59, 130, 246, 0.8))
+                        drop-shadow(0 0 70px rgba(59, 130, 246, 0.7));
+                transform: translateY(-50%) scale(1);
+                opacity: 1;
+            }
+            50% {
+                filter: drop-shadow(0 0 35px rgba(59, 130, 246, 1)) 
+                        drop-shadow(0 0 60px rgba(59, 130, 246, 1))
+                        drop-shadow(0 0 90px rgba(59, 130, 246, 0.9))
+                        drop-shadow(0 0 120px rgba(59, 130, 246, 0.8))
+                        drop-shadow(0 0 150px rgba(59, 130, 246, 0.7));
+                transform: translateY(-50%) scale(1.2);
+                opacity: 0.8;
+            }
+        }
+
+        .search-controls {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: #0f172a;
+            color: white;
+            border: 2px solid #000000;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #1e293b;
+            transform: translateY(-1px);
+        }
+
+        /* Start button text glow effect */
+        #startBtn {
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+            animation: text-glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes text-glow {
+            from {
+                text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+            }
+            to {
+                text-shadow: 0 0 20px rgba(255, 255, 255, 1), 0 0 30px rgba(255, 255, 255, 0.5);
+            }
+        }
+
+        #startBtn:hover {
+            text-shadow: 0 0 25px rgba(255, 255, 255, 1), 0 0 35px rgba(255, 255, 255, 0.7);
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-secondary {
+            background: #64748b;
+            color: white;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #475569;
+            transform: translateY(-1px);
+        }
+
+        /* Category Buttons */
+        .categories {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 40px;
+        }
+
+        .category-btn {
+            padding: 10px 20px;
+            border-radius: 25px;
+            background: rgba(71, 85, 105, 0.2);
+            border: 1px solid rgba(71, 85, 105, 0.3);
+            color: #e0e6ed;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+        }
+
+        .category-btn:hover {
+            background: rgba(71, 85, 105, 0.4);
+            transform: translateY(-1px);
+        }
+
+        /* Status */
+        .status {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(30, 41, 59, 0.5);
+            padding: 12px 24px;
+            border-radius: 25px;
+            border: 1px solid rgba(71, 85, 105, 0.3);
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: #3b82f6;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* Debate Container */
+        .debate-container {
+            background: rgba(30, 41, 59, 0.3);
+            border: 1px solid rgba(71, 85, 105, 0.3);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            overflow: hidden;
+            margin-bottom: 40px;
+        }
+
+        .debate-messages {
+            max-height: 600px;
+            overflow-y: auto;
+            padding: 32px;
+        }
+
+        /* Custom scrollbar */
+        .debate-messages::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .debate-messages::-webkit-scrollbar-track {
+            background: rgba(71, 85, 105, 0.1);
+            border-radius: 4px;
+        }
+
+        .debate-messages::-webkit-scrollbar-thumb {
+            background: rgba(71, 85, 105, 0.3);
+            border-radius: 4px;
+        }
+
+        .debate-messages::-webkit-scrollbar-thumb:hover {
+            background: rgba(71, 85, 105, 0.5);
+        }
+
+        /* Messages */
+        .message {
+            margin-bottom: 32px;
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-grok {
+            background: rgba(255, 107, 53, 0.1);
+            color: #ff6b35;
+            border: 1px solid rgba(255, 107, 53, 0.2);
+        }
+
+        .badge-claude {
+            background: rgba(212, 116, 60, 0.1);
+            color: #d4743c;
+            border: 1px solid rgba(212, 116, 60, 0.2);
+        }
+
+        .badge-chatgpt {
+            background: rgba(16, 163, 127, 0.1);
+            color: #10a37f;
+            border: 1px solid rgba(16, 163, 127, 0.2);
+        }
+
+        .badge-deepseek {
+            background: rgba(79, 70, 229, 0.1);
+            color: #4f46e5;
+            border: 1px solid rgba(79, 70, 229, 0.2);
+        }
+
+        .badge-user {
+            background: rgba(34, 197, 94, 0.1);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, 0.2);
+        }
+
+        .badge-error {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .error-message {
+            border-left: 3px solid #ef4444;
+            padding-left: 16px;
+            margin-left: -16px;
+        }
+
+        .error-content {
+            color: #fca5a5;
+            font-style: italic;
+        }
+
+        .timestamp {
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+
+        .message-content {
+            line-height: 1.7;
+            color: #e0e6ed;
+            font-size: 1rem;
+        }
+
+        .typing-content {
+            position: relative;
+        }
+
+        .typing-content::after {
+            content: '|';
+            color: #3b82f6;
+            animation: blink 1s infinite;
+            font-weight: bold;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        /* Typing indicator */
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background: #3b82f6;
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: 0s; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 80%, 100% { 
+                transform: scale(0.8);
+                opacity: 0.5;
+            }
+            40% { 
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 80px 40px;
+            color: #64748b;
+        }
+
+        .empty-icon {
+            width: 64px;
+            height: 64px;
+            background: rgba(71, 85, 105, 0.2);
+            border-radius: 16px;
+            margin: 0 auto 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 12px;
+            color: #e0e6ed;
+        }
+
+        .empty-state p {
+            max-width: 400px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* Icons */
+        .icon {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .search-input {
+                padding: 20px 50px 20px 50px;
+                font-size: 1rem;
+            }
+            
+            .categories {
+                gap: 8px;
+            }
+            
+            .category-btn {
+                padding: 8px 16px;
+                font-size: 0.8rem;
+            }
+            
+            .debate-messages {
+                padding: 20px;
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Social Button */
+        .social-button {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            background: rgba(15, 23, 42, 0.95);
+            border: 2px solid #000000;
+            border-radius: 50px;
+            padding: 8px 16px;
+            color: #e0e6ed;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .social-button:hover {
+            background: rgba(30, 41, 59, 0.95);
+            transform: translateX(-50%) scale(1.05);
+            box-shadow: 0 6px 25px rgba(59, 130, 246, 0.3);
+        }
+
+        .social-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-top: 8px;
+            background: rgba(15, 15, 35, 0.95);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 8px 0;
+            min-width: 140px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .social-dropdown.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(5px);
+        }
+
+        .social-link {
+            display: block;
+            padding: 8px 16px;
+            color: #e0e6ed;
+            text-decoration: none;
+            font-size: 0.8rem;
+            transition: all 0.2s ease;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .social-link:hover {
+            background: rgba(59, 130, 246, 0.2);
+            color: #93c5fd;
+        }
+
+        .social-icon {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            margin-right: 8px;
+            vertical-align: baseline;
+            position: relative;
+            top: 2px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Particles Background -->
+    <div id="particles-js"></div>
+    
+    <!-- Social Button -->
+    <div class="social-button" id="socialButton">
+        ⚡ Socials
+        <div class="social-dropdown" id="socialDropdown">
+            <a href="https://github.com/wixwebhosting/debateterminal" target="_blank" class="social-link">
+                <span class="social-icon">🐙</span>GitHub
+            </a>
+            <a href="https://x.com/DebateTerminal" target="_blank" class="social-link">
+                <span class="social-icon">🐦</span>Twitter
+            </a>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>debateterminal</h1>
+            <p>Debate With Four AI Models in Real-time</p>
+            <p>CA: XXXXXXXXXXXXXXXXXXXXXX</p>
+        </div>
+
+        <!-- Search Section -->
+        <div class="search-section">
+            <div class="search-container">
+                <svg class="search-icon icon" viewBox="0 0 24 24">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.35-4.35"></path>
+                </svg>
+                <input 
+                    type="text" 
+                    class="search-input" 
+                    id="promptInput"
+                    placeholder="Ask anything or start a debate..."
+                >
+                <svg class="prompt-arrow" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+                </svg>
+                <div class="search-controls">
+                    <button class="btn btn-primary" id="startBtn">
+                        <svg class="icon" viewBox="0 0 24 24">
+                            <polygon points="5,3 19,12 5,21"></polygon>
+                        </svg>
+                        Start
+                    </button>
+                    <button class="btn btn-secondary hidden" id="sendMessageBtn">
+                        <svg class="icon" viewBox="0 0 24 24">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22,2 15,22 11,13 2,9 22,2"></polygon>
+                        </svg>
+                        Send Message
+                    </button>
+                </div>
+            </div>
+
+            <!-- Category Buttons -->
+            <div class="categories">
+                <button class="category-btn" data-category="philosophy">Philosophy</button>
+                <button class="category-btn" data-category="technology">Technology</button>
+                <button class="category-btn" data-category="science">Science</button>
+                <button class="category-btn" data-category="politics">Politics</button>
+            </div>
+        </div>
+
+        <!-- Status -->
+        <div class="status hidden" id="statusSection">
+            <div class="status-indicator">
+                <div class="pulse-dot"></div>
+                <span id="statusText">Preparing debate...</span>
+                <button class="btn btn-danger" id="stopBtn" style="margin-left: 20px; padding: 8px 16px; font-size: 0.8rem;">
+                    Stop Debate
+                </button>
+            </div>
+        </div>
+
+        <!-- Debate Container -->
+        <div class="debate-container" id="debateContainer">
+            <div class="debate-messages" id="debateMessages">
+                <!-- Empty State -->
+                <div class="empty-state" id="emptyState">
+                    <div class="empty-icon">💬</div>
+                    <h3>Start a Debate</h3>
+                    <p>Enter a topic or question above to watch AI models debate in real-time. Grok, Claude, ChatGPT, and DeepSeek will engage in intelligent discourse.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class DebateTerminal {
+            constructor() {
+                this.currentSessionId = null;
+                this.isRunning = false;
+                this.turnCount = 0;
+                this.currentTypingAudio = null;
+                this.lastMessageCount = 0;
+                this.pollingInterval = null;
+                this.isProcessingMessages = false;
+                this.processedMessageIds = new Set(); // Track processed messages
+                
+                this.initializeElements();
+                this.bindEvents();
+                this.initializeSocialButton();
+            }
+
+            initializeSocialButton() {
+                const socialButton = document.getElementById('socialButton');
+                const socialDropdown = document.getElementById('socialDropdown');
+                
+                socialButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    socialDropdown.classList.toggle('show');
+                });
+
+                // Close dropdown when clicking outside
+                document.addEventListener('click', () => {
+                    socialDropdown.classList.remove('show');
+                });
+
+                // Prevent dropdown from closing when clicking inside it
+                socialDropdown.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                });
+            }
+
+            initializeElements() {
+                this.promptInput = document.getElementById('promptInput');
+                this.startBtn = document.getElementById('startBtn');
+                this.sendMessageBtn = document.getElementById('sendMessageBtn');
+                this.stopBtn = document.getElementById('stopBtn');
+                this.statusSection = document.getElementById('statusSection');
+                this.statusText = document.getElementById('statusText');
+                this.debateMessages = document.getElementById('debateMessages');
+                this.emptyState = document.getElementById('emptyState');
+                this.categoryBtns = document.querySelectorAll('.category-btn');
+                
+                // Debug only on initial connection
+                console.log('New user connected - Debate Terminal initialized');
+            }
+
+            bindEvents() {
+                this.startBtn.addEventListener('click', () => this.startDebate());
+                this.sendMessageBtn.addEventListener('click', () => this.sendMessage());
+                this.stopBtn.addEventListener('click', () => this.stopDebate());
+                
+                this.promptInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter' && !this.isRunning) {
+                        this.startDebate();
+                    } else if (e.key === 'Enter' && this.isRunning) {
+                        this.sendMessage();
+                    }
+                });
+
+                this.categoryBtns.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const category = btn.dataset.category;
+                        this.loadRandomQuestion(category);
+                    });
+                });
+            }
+
+            startPolling() {
+                if (this.pollingInterval) {
+                    clearInterval(this.pollingInterval);
+                }
+                
+                this.pollingInterval = setInterval(async () => {
+                    if (this.currentSessionId) {
+                        await this.checkForUpdates();
+                    }
+                }, 1000); // Poll every second
+            }
+
+            stopPolling() {
+                if (this.pollingInterval) {
+                    clearInterval(this.pollingInterval);
+                    this.pollingInterval = null;
+                }
+            }
+
+            async checkForUpdates() {
+                if (this.isProcessingMessages) {
+                    return;
+                }
+                
+                try {
+                    const response = await fetch(`/api/debate/${this.currentSessionId}`);
+                    if (!response.ok) return;
+                    
+                    const data = await response.json();
+                    if (!data.success) return;
+
+                    const session = data.session;
+                    
+                    // Check if debate has ended
+                    if (!session.isActive && this.isRunning) {
+                        this.handleDebateEnd();
+                        return;
+                    }
+
+                    // Process all messages and filter out already processed ones
+                    if (session.messages && session.messages.length > 0) {
+                        this.isProcessingMessages = true;
+                        
+                        // Process all messages, but only show ones we haven't processed yet
+                        for (const message of session.messages) {
+                            // Skip if we've already processed this message
+                            if (this.processedMessageIds.has(message.id)) {
+                                continue;
+                            }
+                            
+                            if (message.isTyping) {
+                                this.showTypingIndicator(message.speaker);
+                                this.processedMessageIds.add(message.id);
+                            } else if (message.isError) {
+                                this.showErrorMessage({ error: message.content, aiModel: message.speaker });
+                                this.processedMessageIds.add(message.id);
+                            } else if (message.speaker !== 'USER' && message.content !== '...') {
+                                // For actual AI messages - use typing animation
+                                this.hideTypingIndicator(); // Remove typing indicator first
+                                await this.startTypingMessage(message);
+                                this.processedMessageIds.add(message.id);
+                            } else if (message.speaker === 'USER') {
+                                // For user messages, only add if not already processed
+                                // (This should already be handled by processedMessageIds check above)
+                                if (!this.processedMessageIds.has(message.id)) {
+                                    this.addMessage(message);
+                                    this.scrollToBottom();
+                                    this.processedMessageIds.add(message.id);
+                                }
+                            }
+                        }
+                        
+                        this.lastMessageCount = session.messages.length;
+                        this.isProcessingMessages = false;
+                    }
+
+                    // Update turn count
+                    if (session.currentTurn !== this.turnCount) {
+                        this.turnCount = session.currentTurn;
+                        this.updateStatus(`Turn ${this.turnCount} - AI models debating...`);
+                    }
+
+                } catch (error) {
+                    console.error('Error checking for updates:', error);
+                    this.isProcessingMessages = false;
+                }
+            }
+
+            async loadRandomQuestion(category) {
+                try {
+                    const response = await fetch(`/api/questions/${category}`);
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        this.promptInput.value = data.question;
+                    }
+                } catch (error) {
+                    console.error('Error loading question:', error);
+                }
+            }
+
+            async startDebate() {
+                const prompt = this.promptInput.value.trim();
+                if (!prompt) return;
+
+                // Clear the input immediately
+                this.promptInput.value = '';
+
+                try {
+                    // Reset processed messages for new debate
+                    this.processedMessageIds.clear();
+                    
+                    // Create debate session
+                    const response = await fetch('/api/debate/start', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ prompt })
+                    });
+
+                    const data = await response.json();
+                    
+                    if (!data.success) {
+                        throw new Error(data.error || 'Failed to start debate');
+                    }
+
+                    this.currentSessionId = data.sessionId;
+                    this.isRunning = true;
+                    this.turnCount = 0;
+                    this.lastMessageCount = 0;
+
+                    // Clear existing messages
+                    this.clearMessages();
+
+                    // Update UI
+                    this.startBtn.classList.add('hidden');
+                    this.sendMessageBtn.classList.remove('hidden');
+                    this.statusSection.classList.remove('hidden');
+                    this.emptyState.classList.add('hidden');
+                    this.startBtn.disabled = true;
+                    this.promptInput.placeholder = "Type your message to join the debate...";
+
+                    // Start the debate
+                    const startResponse = await fetch(`/api/debate/${this.currentSessionId}/start`, {
+                        method: 'POST'
+                    });
+                    
+                    if (!startResponse.ok) {
+                        throw new Error('Failed to start debate loop');
+                    }
+                    
+                    this.updateStatus('Starting debate...');
+                    this.startPolling();
+                    
+                } catch (error) {
+                    console.error('Error starting debate:', error);
+                    alert('Failed to start debate: ' + error.message);
+                    this.handleDebateEnd();
+                }
+            }
+
+            async stopDebate() {
+                if (!this.currentSessionId) return;
+
+                try {
+                    const response = await fetch(`/api/debate/stop/${this.currentSessionId}`, {
+                        method: 'POST'
+                    });
+
+                    this.handleDebateEnd();
+                    
+                } catch (error) {
+                    console.error('Error stopping debate:', error);
+                    this.handleDebateEnd();
+                }
+            }
+
+            handleDebateEnd() {
+                this.isRunning = false;
+                this.currentSessionId = null;
+                this.turnCount = 0;
+                this.lastMessageCount = 0;
+                this.isProcessingMessages = false;
+                this.processedMessageIds.clear();
+                this.stopPolling();
+
+                // Stop any playing typing audio
+                if (this.currentTypingAudio) {
+                    this.currentTypingAudio.pause();
+                    this.currentTypingAudio.currentTime = 0;
+                    this.currentTypingAudio = null;
+                }
+
+                // Update UI
+                this.startBtn.classList.remove('hidden');
+                this.sendMessageBtn.classList.add('hidden');
+                this.statusSection.classList.add('hidden');
+                this.startBtn.disabled = false;
+                this.promptInput.placeholder = "Ask anything or start a debate...";
+                
+                this.hideTypingIndicator();
+            }
+
+            async sendMessage() {
+                const userInput = this.promptInput.value.trim();
+                
+                if (!userInput) {
+                    // Don't allow sending blank messages
+                    return;
+                }
+
+                if (!this.isRunning || !this.currentSessionId) {
+                    alert('No active debate to send message to.');
+                    return;
+                }
+
+                try {
+                    // Disable the send message button temporarily
+                    this.sendMessageBtn.disabled = true;
+                    
+                    // Clear the input immediately
+                    this.promptInput.value = '';
+                    
+                    // Create user message
+                    const userMessage = {
+                        id: Date.now().toString(),
+                        speaker: 'USER',
+                        content: userInput,
+                        timestamp: new Date(),
+                        turn: this.turnCount
+                    };
+                    
+                    // Add user message to UI immediately and mark as processed
+                    this.addMessage(userMessage);
+                    this.processedMessageIds.add(userMessage.id); // Prevent duplicate from server
+                    
+                    // Send user message to server
+                    const response = await fetch(`/api/debate/${this.currentSessionId}/message`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ content: userInput })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Failed to send message');
+                    }
+                    
+                    this.updateStatus('You joined the debate...');
+                    
+                } catch (error) {
+                    console.error('Error sending message:', error);
+                    alert('Failed to send message: ' + error.message);
+                } finally {
+                    // Re-enable the send message button after a short delay
+                    setTimeout(() => {
+                        this.sendMessageBtn.disabled = false;
+                    }, 1000);
+                }
+            }
+
+            addMessage(message) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message';
+                
+                const speakerClass = message.speaker.toLowerCase();
+                const timestamp = new Date(message.timestamp).toLocaleTimeString();
+                
+                messageDiv.innerHTML = `
+                    <div class="message-header">
+                        <div class="badge badge-${speakerClass}">${message.speaker}</div>
+                        <div class="timestamp">${timestamp}</div>
+                    </div>
+                    <div class="message-content">${this.escapeHtml(message.content)}</div>
+                `;
+                
+                this.debateMessages.appendChild(messageDiv);
+                this.scrollToBottom();
+            }
+
+            async startTypingMessage(message) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message';
+                messageDiv.id = `typing-message-${message.id}`;
+                
+                const speakerClass = message.speaker.toLowerCase();
+                const timestamp = new Date(message.timestamp).toLocaleTimeString();
+                
+                messageDiv.innerHTML = `
+                    <div class="message-header">
+                        <div class="badge badge-${speakerClass}">${message.speaker}</div>
+                        <div class="timestamp">${timestamp}</div>
+                    </div>
+                    <div class="message-content typing-content" id="content-${message.id}"></div>
+                `;
+                
+                this.debateMessages.appendChild(messageDiv);
+                this.scrollToBottom();
+                
+                // Start typing animation
+                await this.typeMessage(message.content, `content-${message.id}`);
+            }
+
+            async typeMessage(text, elementId) {
+                const element = document.getElementById(elementId);
+                if (!element) return;
+                
+                element.textContent = '';
+                
+                // Start typing sound from random position
+                try {
+                    this.currentTypingAudio = new Audio('typing.mp3');
+                    this.currentTypingAudio.loop = true;
+                    this.currentTypingAudio.volume = 0.3;
+                    
+                    // Set random start time - do it immediately for local files
+                    this.currentTypingAudio.currentTime = Math.random() * 10; // Assume max 10 second audio file
+                    
+                    this.currentTypingAudio.play().catch(e => {
+                        // Audio play failed - this is normal if no typing.mp3 file
+                        this.currentTypingAudio = null;
+                    });
+                } catch (e) {
+                    // Audio initialization failed
+                    this.currentTypingAudio = null;
+                }
+                
+                // Check if user was at bottom before typing starts
+                const wasAtBottom = this.isScrolledToBottom();
+                
+                for (let i = 0; i < text.length; i++) {
+                    if (!this.isRunning) {
+                        // Stop typing sound if debate is stopped
+                        if (this.currentTypingAudio) {
+                            this.currentTypingAudio.pause();
+                            this.currentTypingAudio.currentTime = 0;
+                            this.currentTypingAudio = null;
+                        }
+                        break;
+                    }
+                    
+                    element.textContent += text[i].toLowerCase();
+                    
+                    // Only auto-scroll if user was at bottom when typing started
+                    if (wasAtBottom) {
+                        this.scrollToBottom();
+                    }
+                    
+                    // Variable typing speed (20% faster)
+                    let delay = 24; // Base delay (30 * 0.8 = 24)
+                    const char = text[i];
+                    
+                    if (char === ' ') delay = 12; // 15 * 0.8 = 12
+                    else if (char === ',' || char === ';') delay = 80; // 100 * 0.8 = 80
+                    else if (char === '.' || char === '!' || char === '?') delay = 120; // 150 * 0.8 = 120
+                    else if (char === '\n') delay = 160; // 200 * 0.8 = 160
+                    else delay = 20 + Math.random() * 28; // (25 + 35) * 0.8 = 48 total, so 20 + 28
+                    
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+                
+                // Stop typing sound
+                if (this.currentTypingAudio) {
+                    this.currentTypingAudio.pause();
+                    this.currentTypingAudio.currentTime = 0;
+                    this.currentTypingAudio = null;
+                }
+                
+                // Remove typing class when done
+                element.classList.remove('typing-content');
+            }
+
+            showTypingIndicator(aiModel) {
+                this.hideTypingIndicator(); // Remove existing indicator
+                
+                const typingDiv = document.createElement('div');
+                typingDiv.className = 'typing-indicator';
+                typingDiv.id = 'typingIndicator';
+                
+                typingDiv.innerHTML = `
+                    <div class="typing-dots">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                    <span>${aiModel} is responding...</span>
+                `;
+                
+                this.debateMessages.appendChild(typingDiv);
+                this.scrollToBottom();
+            }
+
+            hideTypingIndicator() {
+                const indicator = document.getElementById('typingIndicator');
+                if (indicator) {
+                    indicator.remove();
+                }
+            }
+
+            clearMessages() {
+                this.debateMessages.innerHTML = '';
+            }
+
+            updateStatus(text) {
+                this.statusText.textContent = text;
+            }
+
+            scrollToBottom() {
+                this.debateMessages.scrollTop = this.debateMessages.scrollHeight;
+            }
+
+            isScrolledToBottom() {
+                const threshold = 5; // Allow 5px tolerance
+                return this.debateMessages.scrollTop >= 
+                    (this.debateMessages.scrollHeight - this.debateMessages.clientHeight - threshold);
+            }
+
+            showErrorMessage(data) {
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'message error-message';
+                
+                const timestamp = new Date().toLocaleTimeString();
+                
+                errorDiv.innerHTML = `
+                    <div class="message-header">
+                        <div class="badge badge-error">ERROR - ${data.aiModel}</div>
+                        <div class="timestamp">${timestamp}</div>
+                    </div>
+                    <div class="message-content error-content">
+                        ❌ ${data.error}
+                    </div>
+                `;
+                
+                this.debateMessages.appendChild(errorDiv);
+                this.scrollToBottom();
+            }
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+        }
+
+        // Initialize the application when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            new DebateTerminal();
+            
+            // Initialize particles.js
+            particlesJS('particles-js', {
+                "particles": {
+                    "number": {
+                        "value": 80,
+                        "density": {
+                            "enable": true,
+                            "value_area": 800
+                        }
+                    },
+                    "color": {
+                        "value": "#3b82f6"
+                    },
+                    "shape": {
+                        "type": "circle",
+                        "stroke": {
+                            "width": 0,
+                            "color": "#000000"
+                        }
+                    },
+                    "opacity": {
+                        "value": 0.3,
+                        "random": false,
+                        "anim": {
+                            "enable": false,
+                            "speed": 1,
+                            "opacity_min": 0.1,
+                            "sync": false
+                        }
+                    },
+                    "size": {
+                        "value": 3,
+                        "random": true,
+                        "anim": {
+                            "enable": false,
+                            "speed": 40,
+                            "size_min": 0.1,
+                            "sync": false
+                        }
+                    },
+                    "line_linked": {
+                        "enable": true,
+                        "distance": 150,
+                        "color": "#3b82f6",
+                        "opacity": 0.2,
+                        "width": 1
+                    },
+                    "move": {
+                        "enable": true,
+                        "speed": 2,
+                        "direction": "none",
+                        "random": false,
+                        "straight": false,
+                        "out_mode": "out",
+                        "bounce": false,
+                        "attract": {
+                            "enable": false,
+                            "rotateX": 600,
+                            "rotateY": 1200
+                        }
+                    }
+                },
+                "interactivity": {
+                    "detect_on": "canvas",
+                    "events": {
+                        "onhover": {
+                            "enable": true,
+                            "mode": "repulse"
+                        },
+                        "onclick": {
+                            "enable": true,
+                            "mode": "push"
+                        },
+                        "resize": true
+                    },
+                    "modes": {
+                        "grab": {
+                            "distance": 140,
+                            "line_linked": {
+                                "opacity": 1
+                            }
+                        },
+                        "bubble": {
+                            "distance": 400,
+                            "size": 40,
+                            "duration": 2,
+                            "opacity": 8,
+                            "speed": 3
+                        },
+                        "repulse": {
+                            "distance": 100,
+                            "duration": 0.4
+                        },
+                        "push": {
+                            "particles_nb": 4
+                        },
+                        "remove": {
+                            "particles_nb": 2
+                        }
+                    }
+                },
+                "retina_detect": true
+            });
+        });
+    </script>
+</body>
+</html>
