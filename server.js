@@ -195,8 +195,14 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-const PORT = process.env.PORT || 3003;
-app.listen(PORT, () => {
-  console.log(`Debate Terminal server running on port ${PORT}`);
-  console.log(`Visit http://localhost:${PORT} to access the application`);
-});
+// For Vercel serverless deployment
+module.exports = app;
+
+// For local development
+if (require.main === module) {
+  const PORT = process.env.PORT || 3003;
+  app.listen(PORT, () => {
+    console.log(`Debate Terminal server running on port ${PORT}`);
+    console.log(`Visit http://localhost:${PORT} to access the application`);
+  });
+}
